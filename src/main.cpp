@@ -58,6 +58,7 @@ void clear_data(SafeMap<int, int>& safe_map) {
 }
 
 int main() {
+    {
     SafeMap<int, int> safe_map;
     // 多线程插入数据
     std::vector<std::future<void>> futures;
@@ -85,8 +86,8 @@ int main() {
     }
 
     std::cout << "---------------------------" << std::endl;
-
-    while (true) {
-        ;
-    }    
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    }
+    std::cout << "---------------------------" << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 }

@@ -27,7 +27,7 @@ class SafeMap {
     using SystemClock = std::chrono::system_clock;
     using KeyValueSharedPtr = std::shared_ptr<KeyValue<K, V>>;
 public:
-    SafeMap() {
+    SafeMap() : _is_running(true) {
         _tick_thread = std::thread([this]{loop_tick();});
     }
 
@@ -39,6 +39,8 @@ public:
 
     ~SafeMap() {
         std::cout << "SafeMap destructor" << std::endl;
+        _is_running = false;
+        
         decltype(_data_map) temp_map;
         decltype(_min_expire_heap) temp_heap;
         decltype(_queue) temp_queue;
@@ -50,7 +52,7 @@ public:
             _queue.swap(temp_queue);
         }
         
-        _tick_thread.join();
+        _tick_thread.detach();
     }
 
     /*
@@ -393,12 +395,15 @@ private:
     */
     void loop_tick() {
         int count = 0;
-        while (true) {
+        while (_is_running) {
             // 打印_data_map _min_expire_heap _queue的大小
             std::cout << "data_map size: " << _data_map.size() << " min_expire_heap size: " << _min_expire_heap.size() << " queue size: " << _queue.size() << std::endl;
             
             int interval = kDefaultCheckInterval;
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+            if (!_is_running) {
+                break;
+            }
             if (count == kCheckAllTimes) {
                 std::cout << "tick_all" << std::endl;
                 tick_all();
@@ -432,4 +437,7 @@ private:
 
     // 执行tick()的线程
     std::thread _tick_thread;
+
+    // 是否在运行标志
+    std::atomic<bool> _is_running;
 };
